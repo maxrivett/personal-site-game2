@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import PlayerData from './PlayerData';
+import Max from './Max';
 
 const TILE_WIDTH = 32;
 const VELOCITY_EPSILON = 1e-2; // velocity close to zero
@@ -19,6 +20,7 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     private direction: MOVEMENT_DIRECTION;  
     private playerData: PlayerData;
     public canMove = true; // false if sidebar etc is open
+    protected max?: Max;
 
     constructor(scene: Phaser.Scene, x: number, y: number, playerData: PlayerData) {
         super(scene, x, y, 'player');
@@ -39,6 +41,8 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
 
         // Add an animation complete event listener
         this.on('animationcomplete', this.animComplete, this);
+
+        // this.createMax();
     }
 
     private snapToGrid(coord: number): number {
@@ -141,8 +145,16 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
             }
         }
 
-        // Move towards target
+        /// Move towards target
         this.scene.physics.moveTo(this, this.target.x, this.target.y, MID_SPEED);
+
+        if (this.max) {
+            // Record player position for Max to follow
+            this.max.recordPlayerPosition(this.target.x, this.target.y);
+            
+            // Update Max's position
+            this.max.update();
+        } 
 
         const distance = Phaser.Math.Distance.Between(this.x, this.y, this.target.x, this.target.y);
         if (distance < TILE_WIDTH / 8) { // Adjust this distance as needed
@@ -153,5 +165,13 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
 
     getDirection(): number {
         return this.direction;
+    }
+
+    // public createMax() {
+    //     this.max = new Max(this.scene, this.x, this.y, 'maxTexture', this);
+    //   }
+
+    public setMax(max: Max) {
+        this.max = max;
     }
 }

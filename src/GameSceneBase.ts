@@ -4,6 +4,7 @@ import PlayerData from './PlayerData';
 import Sign from './interactive/sign'; 
 import BigSign from './interactive/bigsign'; 
 import NPC from './NPC'; 
+import Max from './Max';
 
 const TILE_WIDTH = 32;
 const PLAYER_SPRITE = "max"; // change later
@@ -12,6 +13,7 @@ const MAP_MAX_HEIGHT = 600;
 
 export default class GameScene extends Phaser.Scene {
     protected player?: Player;
+    // protected max?: Max;
     protected npcs: NPC[] = [];
     protected playerData!: PlayerData;
     zone: string;
@@ -21,6 +23,7 @@ export default class GameScene extends Phaser.Scene {
     public showingBigSign: boolean = false;
     private isFading: boolean = false;
     private debounce: boolean = false;
+    playerPositionQueue: Phaser.Math.Vector2[] = [];
 
     constructor(sceneKey: string, zone: string) {
         super({ key: sceneKey });
@@ -46,6 +49,7 @@ export default class GameScene extends Phaser.Scene {
 
         // (this.plugins.get('PhaserSceneWatcherPlugin') as any).watchAll();
         this.makeAnimations('player');
+        this.makeAnimations('max');
 
         // Create game entities here
 
@@ -97,20 +101,25 @@ export default class GameScene extends Phaser.Scene {
                 // obj.properties[0].value = pastScene
                 if (obj.properties[0].value === this.playerData.getPastScene() || !this.playerData.isActive()) {
                     // This is the correct spawn point
-                    const spawnx = obj.x, spawny = obj.y;
+                    let xPos = obj.x, yPos = obj.y;
                     if (!this.playerData.isActive()) { // meaning they just loaded into the game
                         const { x, y } = this.playerData.getPosition();
-                        this.player.setPosition(x, y);
+                        xPos = x;
+                        yPos = y;
                         this.playerData.setActive(true);
-                    } else {
-                        this.player.setPosition(spawnx, spawny);
                     }
+                    this.player.setPosition(xPos, yPos);
+                    const max = new Max(this, xPos, yPos + 32, 'max', this.player);
+                    this.player.setMax(max);
                 }
             }
             if (obj.type === 'bigSign') {
                 const myBigSign = new BigSign(this, obj.x, obj.y, obj.width, obj.height, obj.properties[0].value, this.player);
                 this.bigSigns.push(myBigSign);
             }
+            // if (obj.type === 'max') {
+            //     this.max = new Max(this, obj.x, obj.y, 'player', this.player);
+            // }
         });
 
         aboveLayer.setDepth(10) // make sure above player
@@ -272,6 +281,8 @@ export default class GameScene extends Phaser.Scene {
         this.load.spritesheet(`player`, `../assets/sprites/player/${PLAYER_SPRITE}sheet.png`, { frameWidth: 32, frameHeight: 32 });
         this.load.spritesheet('guy', `../assets/sprites/player/guysheet.png`, { frameWidth: 32, frameHeight: 32 });
         this.load.spritesheet('cynthia', `../assets/sprites/player/cynthiasheet.png`, { frameWidth: 32, frameHeight: 32 });
+        this.load.spritesheet('max', `../assets/sprites/player/maxsheet.png`, { frameWidth: 32, frameHeight: 32 });
+
 
         // Scene Watcher
         this.load.script('webfont', 'https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js'); // for font
