@@ -36,15 +36,52 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
         this.target = new Phaser.Math.Vector2(this.x, this.y);
         this.playerData = playerData;
         this.direction = this.playerData.getDirection() || MOVEMENT_DIRECTION.Up;
+
+        // Add an animation complete event listener
+        this.on('animationcomplete', this.animComplete, this);
     }
 
+    private snapToGrid(coord: number): number {
+        const halfTile = TILE_WIDTH / 2;
+        return Math.round((coord + halfTile) / TILE_WIDTH) * TILE_WIDTH - halfTile;
+    }
+
+    private animComplete(animation: Phaser.Animations.Animation, frame: Phaser.Animations.AnimationFrame) {
+        // Add logic to revert to standing animation
+        if (animation.key.startsWith('player_walk')) {
+            switch (this.direction) {
+                case MOVEMENT_DIRECTION.Up:
+                    this.anims.play('player_stand_up', true);
+                    break;
+                case MOVEMENT_DIRECTION.Down:
+                    this.anims.play('player_stand_down', true);
+                    break;
+                case MOVEMENT_DIRECTION.Left:
+                    this.anims.play('player_stand_left', true);
+                    break;
+                case MOVEMENT_DIRECTION.Right:
+                    this.anims.play('player_stand_right', true);
+                    break;
+            }
+        }
+    }
+    
+
     update() {
-        // If the player isn't moving and should be, reset target (so that doesn't get stuck to objects)
+        // Snap to grid if velocity is low and not at the target
         if (Math.abs(this.body.velocity.x) <= VELOCITY_EPSILON &&
-            Math.abs(this.body.velocity.y) <= VELOCITY_EPSILON &&
-            (this.x !== this.target.x || this.y !== this.target.y)) {
+            Math.abs(this.body.velocity.y) <= VELOCITY_EPSILON) {
+            
+            this.x = this.snapToGrid(this.x);
+            this.y = this.snapToGrid(this.y);
             this.target.x = this.x;
             this.target.y = this.y;
+            this.body.reset(this.x, this.y);
+        }
+
+        // Check if animation is currently playing
+        if (this.anims.currentAnim && this.anims.currentAnim.key.startsWith('player_walk')) {
+            return;
         }
         // used for movement checking only (so that no diagonal)
         var directionLocal = 0
@@ -57,16 +94,16 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
         if (this.target.x === this.x && this.target.y === this.y) {
             switch (this.direction) {  
                 case MOVEMENT_DIRECTION.Up:
-                    this.anims.play('stand_up', true);
+                    this.anims.play('player_stand_up', true);
                     break;
                 case MOVEMENT_DIRECTION.Down:
-                    this.anims.play('stand_down', true);
+                    this.anims.play('player_stand_down', true);
                     break;
                 case MOVEMENT_DIRECTION.Left:
-                    this.anims.play('stand_left', true);
+                    this.anims.play('player_stand_left', true);
                     break;
                 case MOVEMENT_DIRECTION.Right:
-                    this.anims.play('stand_right', true);
+                    this.anims.play('player_stand_right', true);
                     break;
                 default:
                     break;
@@ -79,13 +116,13 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
                 this.target.y -= (modTargetY === 0) ? TILE_WIDTH : (TILE_WIDTH - Math.abs(modTargetY));
                 this.direction = MOVEMENT_DIRECTION.Up;
                 directionLocal = MOVEMENT_DIRECTION.Up;
-                this.anims.play('up', true);
+                this.anims.play('player_up', true);
                 this.playerData.setActive(true);
             } else if (this.cursorKeys.down?.isDown && (directionLocal == 0 || directionLocal == MOVEMENT_DIRECTION.Down)) {
                 this.target.y += (modTargetY === 0) ? TILE_WIDTH : (TILE_WIDTH - Math.abs(modTargetY));
                 this.direction = MOVEMENT_DIRECTION.Down;
                 directionLocal = MOVEMENT_DIRECTION.Down;
-                this.anims.play('down', true);
+                this.anims.play('player_down', true);
                 this.playerData.setActive(true);
             }
 
@@ -93,13 +130,13 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
                 this.target.x -= (modTargetX === 0) ? TILE_WIDTH : (TILE_WIDTH - Math.abs(modTargetX));
                 this.direction = MOVEMENT_DIRECTION.Left;
                 directionLocal = MOVEMENT_DIRECTION.Left;
-                this.anims.play('left', true);
+                this.anims.play('player_left', true);
                 this.playerData.setActive(true);
             } else if (this.cursorKeys.right?.isDown && (directionLocal == 0 || directionLocal == MOVEMENT_DIRECTION.Right)) {
                 this.target.x += (modTargetX === 0) ? TILE_WIDTH : (TILE_WIDTH - Math.abs(modTargetX));
                 this.direction = MOVEMENT_DIRECTION.Right;
                 directionLocal = MOVEMENT_DIRECTION.Right;
-                this.anims.play('right', true);
+                this.anims.play('player_right', true);
                 this.playerData.setActive(true);
             }
         }
@@ -107,8 +144,8 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
         // Move towards target
         this.scene.physics.moveTo(this, this.target.x, this.target.y, MID_SPEED);
 
-        // If close enough to target, snap position to target
-        if (Phaser.Math.Distance.Between(this.x, this.y, this.target.x, this.target.y) < 1) {
+        const distance = Phaser.Math.Distance.Between(this.x, this.y, this.target.x, this.target.y);
+        if (distance < TILE_WIDTH / 8) { // Adjust this distance as needed
             this.setPosition(this.target.x, this.target.y);
             this.body.reset(this.target.x, this.target.y);
         }

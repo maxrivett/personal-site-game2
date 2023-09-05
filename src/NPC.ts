@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import Player from './Player';  // Update the import based on your actual Player class path
 
 const TILE_WIDTH = 32;  
-const WALK_SPEED = 40; // Reduced walk speed
+const WALK_SPEED = 80; // Reduced walk speed
 
 enum NPC_DIRECTION {
   Up = 'Up',
@@ -23,6 +23,9 @@ export default class NPC extends Phaser.Physics.Arcade.Sprite {
   private isPlayerInSight: boolean; 
   private shouldResumeMovement: boolean;
 
+  private isStationary: boolean;
+  private isNonRotational: boolean;
+
 
   // Define bounds for NPC movement
   private minX: number;
@@ -39,8 +42,25 @@ export default class NPC extends Phaser.Physics.Arcade.Sprite {
     this.initTextBox(text);
     
     this.target = new Phaser.Math.Vector2(this.x, this.y);
-    this.direction = NPC_DIRECTION.Up;
-
+    switch (frame) {
+      case 0:
+        this.direction = NPC_DIRECTION.Up;
+        break;
+      case 1:
+        this.direction = NPC_DIRECTION.Right;
+        break;
+      case 2:
+        this.direction = NPC_DIRECTION.Down;
+        break;
+      case 3:
+        this.direction = NPC_DIRECTION.Left;
+        break;
+    
+      default:
+        this.direction = NPC_DIRECTION.Down;
+        break;
+    }
+    
     // Set the domain bounds
     this.minX = minX;
     this.maxX = maxX;
@@ -50,8 +70,13 @@ export default class NPC extends Phaser.Physics.Arcade.Sprite {
     this.isPlayerInSight = false;
     this.shouldResumeMovement = false;
 
+    this.isStationary = (minX+minY+maxX+maxY) < 2; // 0 for stationary but rotational
+    this.isNonRotational = (minX+minY+maxX+maxY) === 1; // 1 for stationary no rotation
+
     // Initialize the move event
-    this.scheduleNextMove();
+    if (!this.isStationary) {
+      this.scheduleNextMove();
+    }
   }
 
   private initTextBox(text: string) {
@@ -85,6 +110,7 @@ export default class NPC extends Phaser.Physics.Arcade.Sprite {
 
 
   private changeDirection() {
+    if (this.isNonRotational) return;
     if (this.isPlayerInSight) return; // dont let npc move
     const directions = [NPC_DIRECTION.Up, NPC_DIRECTION.Down, NPC_DIRECTION.Left, NPC_DIRECTION.Right];
     this.direction = directions[Math.floor(Math.random() * directions.length)];
@@ -108,7 +134,7 @@ export default class NPC extends Phaser.Physics.Arcade.Sprite {
     // Check if the new target is within bounds
     if (newTarget.x >= this.minX && newTarget.x <= this.maxX && newTarget.y >= this.minY && newTarget.y <= this.maxY) {
       this.target = newTarget;
-      this.anims.play(this.direction.toLowerCase(), true);
+      this.anims.play(`${this.texture.key}_${this.direction.toLowerCase()}`, true);
     }
     
     // Schedule the next change of direction
@@ -116,9 +142,6 @@ export default class NPC extends Phaser.Physics.Arcade.Sprite {
   }
 
   public preUpdate(time: number, delta: number) {
-    if (!this.anims || !this.scene || !this.body) {
-        console.log('Something is undefined', this);
-    }
     super.preUpdate(time, delta);
 
     const playerInSight = this.lineOfSightIntersectsPlayer(); // Check if player is in sight
@@ -142,22 +165,22 @@ export default class NPC extends Phaser.Physics.Arcade.Sprite {
     if (this.isPlayerInSight) return; // dont let npc move
 
     if (this.target.x === this.x && this.target.y === this.y) {
-        switch (this.direction) {  
-            case NPC_DIRECTION.Up:
-                this.anims.play('stand_up', true);
-                break;
-            case NPC_DIRECTION.Down:
-                this.anims.play('stand_down', true);
-                break;
-            case NPC_DIRECTION.Left:
-                this.anims.play('stand_left', true);
-                break;
-            case NPC_DIRECTION.Right:
-                this.anims.play('stand_right', true);
-                break;
-            default:
-                break;
-        }
+      switch (this.direction) {
+          case NPC_DIRECTION.Up:
+              this.anims.play(`${this.texture.key}_stand_up`, true);
+              break;
+          case NPC_DIRECTION.Down:
+              this.anims.play(`${this.texture.key}_stand_down`, true);
+              break;
+          case NPC_DIRECTION.Left:
+              this.anims.play(`${this.texture.key}_stand_left`, true);
+              break;
+          case NPC_DIRECTION.Right:
+              this.anims.play(`${this.texture.key}_stand_right`, true);
+              break;
+          default:
+              break;
+      }
     } else {
         this.scene.physics.moveTo(this, this.target.x, this.target.y, WALK_SPEED);
     }

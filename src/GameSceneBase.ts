@@ -43,33 +43,34 @@ export default class GameScene extends Phaser.Scene {
     create(data: any) {
         this.playerData = data.playerData;
         this.physics.world.debugGraphic.visible = false; // debug graphics        
-
+    
         // (this.plugins.get('PhaserSceneWatcherPlugin') as any).watchAll();
-        this.makeAnimations();
-
+    
         // Create game entities here
-
+    
         const map = this.make.tilemap({ key: `map_${this.zone}` });
         const tileset = map.addTilesetImage("tileset", "tiles");
-
+    
         // Layers
         const groundLayer = map.createLayer("Ground", tileset, 0, 0);
         const belowLayer = map.createLayer("Below Player", tileset, 0, 0);
         const worldLayer = map.createLayer("World", tileset, 0, 0);
         const aboveLayer = map.createLayer("Above Player", tileset, 0, 0);
-
+    
         // for collisions
         worldLayer.setCollisionBetween(1, 21000, true); // adding collisions for all tiles in the world layer   
-
+    
         const objectLayer = map.getObjectLayer('Objects');
         this.signs = [];
         this.showingSign = false;
         this.bigSigns = [];
         this.showingBigSign = false;
-        let pastScene = this.playerData.getPastScene();
-
-
+    
+        // Initialize player object before creating animations
         this.player = new Player(this, 0, 0, this.playerData);
+    
+        // Now create animations
+        this.makeAnimations("player");
         
         objectLayer.objects.forEach(obj => {
             
@@ -101,11 +102,9 @@ export default class GameScene extends Phaser.Scene {
                     if (!this.playerData.isActive()) { // meaning they just loaded into the game
                         const { x, y } = this.playerData.getPosition();
                         this.player.setPosition(x, y);
-                        // this.player = new Player(this, x, y, this.playerData); // create a new Player entity at last save
                         this.playerData.setActive(true);
                     } else {
                         this.player.setPosition(spawnx, spawny);
-                        //  = new Player(this, spawnx, spawny, this.playerData); // create a new Player entity at spawn
                     }
                 }
             }
@@ -120,13 +119,6 @@ export default class GameScene extends Phaser.Scene {
         // enable physics for the player sprite
         this.physics.add.existing(this.player, false); // make true to show the box
         // for collisions
-
-        console.assert(this.player, 'this.player');
-        // this.physics.add.collider(this.player, worldLayer, (a, b) => {
-        //     console.log('Collider callback triggered');
-        //     console.log('Player: ', a);
-        //     console.log('Tile: ', b);
-        //   });
         this.physics.add.collider(this.player, worldLayer);
 
 
@@ -134,7 +126,7 @@ export default class GameScene extends Phaser.Scene {
         let offsetX = map.widthInPixels < MAP_MAX_WIDTH ? (MAP_MAX_WIDTH - map.widthInPixels) / 2 : 0;
         let offsetY = map.heightInPixels < MAP_MAX_HEIGHT ? (MAP_MAX_HEIGHT - map.heightInPixels) / 2 : 0;
         // Camera to follow player around
-        this.cameras.main.startFollow(this.player);
+        this.cameras.main.startFollow(this.player); //, true, 0.1, 0.1
         this.cameras.main.setBounds(-offsetX, -offsetY, map.widthInPixels, map.heightInPixels); 
         // Set the camera position to the center of the scene
         this.cameras.main.setScroll(offsetX, offsetY);
@@ -182,84 +174,30 @@ export default class GameScene extends Phaser.Scene {
 
     
     // Player animation
-    makeAnimations() {
-        // Sprite animations
-        if (!this.anims.exists('up')) { // Check if the animation already exists before creating it
-            this.anims.create({
-                key: 'up',
-                frames: [
-                    { key: 'player', frame: 0 },
-                    { key: 'player', frame: 10 },
-                    { key: 'player', frame: 0 },
-                    { key: 'player', frame: 2 },
-                ],
-                frameRate: 10,
-                repeat: -1
-            });
+    makeAnimations(spriteKey: string) {
+        const anims = [
+            {key: 'up', frames: [0, 10, 0, 2]},
+            {key: 'right', frames: [1, 4, 1, 7]},
+            {key: 'down', frames: [5, 8, 5, 11]},
+            {key: 'left', frames: [6, 3, 6, 9]},
+            {key: 'stand_left', frames: [6]},
+            {key: 'stand_right', frames: [1]},
+            {key: 'stand_up', frames: [0]},
+            {key: 'stand_down', frames: [5]}
+        ];
+    
+        for (const anim of anims) {
+            const uniqueKey = `${spriteKey}_${anim.key}`;
+            if (!this.anims.exists(uniqueKey)) {
+                this.anims.create({
+                    key: uniqueKey,
+                    frames: anim.frames.map(frame => ({ key: spriteKey, frame })),
+                    frameRate: 7,
+                    repeat: 0
+                });
+            }
         }
-        if (!this.anims.exists('right')) {
-            this.anims.create({
-                key: 'right',
-                frames: [
-                    { key: 'player', frame: 1 },
-                    { key: 'player', frame: 4 },
-                    { key: 'player', frame: 1 },
-                    { key: 'player', frame: 7 },
-                ],
-                frameRate: 10,
-                repeat: -1
-            });
-        }
-
-        if (!this.anims.exists('down')) {
-            this.anims.create({
-                key: 'down',
-                frames: [
-                    { key: 'player', frame: 5 },
-                    { key: 'player', frame: 8 },
-                    { key: 'player', frame: 5 },
-                    { key: 'player', frame: 11 },
-                ],
-                frameRate: 10,
-                repeat: -1
-            });
-        }
-        
-        if (!this.anims.exists('left')) {
-            this.anims.create({
-                key: 'left',
-                frames: [
-                    { key: 'player', frame: 6 },
-                    { key: 'player', frame: 3 },
-                    { key: 'player', frame: 6 },
-                    { key: 'player', frame: 9 },
-                ],
-                frameRate: 10,
-                repeat: -1
-            });
-        }
-
-        if (!this.anims.exists('stand_left')) {
-            this.anims.create({
-                key: 'stand_left', frames: [ { key: 'player', frame: 6 }, ], frameRate: 10, repeat: -1
-            });
-        }
-        if (!this.anims.exists('stand_right')) {
-            this.anims.create({
-                key: 'stand_right', frames: [ { key: 'player', frame: 1 }, ], frameRate: 10, repeat: -1
-            });
-        }
-        if (!this.anims.exists('stand_up')) {
-            this.anims.create({
-                key: 'stand_up', frames: [ { key: 'player', frame: 0 }, ], frameRate: 10, repeat: -1
-            });
-        }
-        if (!this.anims.exists('stand_down')) {
-            this.anims.create({
-                key: 'stand_down', frames: [ { key: 'player', frame: 5 }, ], frameRate: 10, repeat: -1
-            });
-        }
-    }
+    }    
 
     /**
      * Adds an NPC to the scene. Function called in GameScene#.ts
@@ -332,7 +270,7 @@ export default class GameScene extends Phaser.Scene {
         this.load.tilemapTiledJSON(`map_${this.zone}`, `../assets/tiles/${this.zone}/tilemap.json`);
 
         // Load sprite sheets
-        this.load.spritesheet('player', `../assets/sprites/player/${PLAYER_SPRITE}sheet.png`, { frameWidth: 32, frameHeight: 32 });
+        this.load.spritesheet(`player`, `../assets/sprites/player/${PLAYER_SPRITE}sheet.png`, { frameWidth: 32, frameHeight: 32 });
         this.load.spritesheet('guy', `../assets/sprites/player/guysheet.png`, { frameWidth: 32, frameHeight: 32 });
         this.load.spritesheet('cynthia', `../assets/sprites/player/cynthiasheet.png`, { frameWidth: 32, frameHeight: 32 });
 
