@@ -43,34 +43,33 @@ export default class GameScene extends Phaser.Scene {
     create(data: any) {
         this.playerData = data.playerData;
         this.physics.world.debugGraphic.visible = false; // debug graphics        
-    
+
         // (this.plugins.get('PhaserSceneWatcherPlugin') as any).watchAll();
-    
+        this.makeAnimations('player');
+
         // Create game entities here
-    
+
         const map = this.make.tilemap({ key: `map_${this.zone}` });
         const tileset = map.addTilesetImage("tileset", "tiles");
-    
+
         // Layers
         const groundLayer = map.createLayer("Ground", tileset, 0, 0);
         const belowLayer = map.createLayer("Below Player", tileset, 0, 0);
         const worldLayer = map.createLayer("World", tileset, 0, 0);
         const aboveLayer = map.createLayer("Above Player", tileset, 0, 0);
-    
+
         // for collisions
         worldLayer.setCollisionBetween(1, 21000, true); // adding collisions for all tiles in the world layer   
-    
+
         const objectLayer = map.getObjectLayer('Objects');
         this.signs = [];
         this.showingSign = false;
         this.bigSigns = [];
         this.showingBigSign = false;
-    
-        // Initialize player object before creating animations
+        let pastScene = this.playerData.getPastScene();
+
+
         this.player = new Player(this, 0, 0, this.playerData);
-    
-        // Now create animations
-        this.makeAnimations("player");
         
         objectLayer.objects.forEach(obj => {
             
