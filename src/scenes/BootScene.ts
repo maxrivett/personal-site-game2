@@ -22,12 +22,12 @@ export default class BootScene extends Phaser.Scene {
         });
 
         // Load player data
-        const locallyStored = localStorage.getItem("playerData");
-        if (locallyStored) {
-            this.playerData = new PlayerData(JSON.parse(locallyStored));;
-        } else {
-            this.playerData = await this.loadPlayerData();
-        }        
+        // const locallyStored = localStorage.getItem("playerData");
+        // if (locallyStored) {
+        //     this.playerData = new PlayerData(JSON.parse(locallyStored));;
+        // } else {
+        this.playerData = await this.loadPlayerData();
+        // }        
 
     }
 

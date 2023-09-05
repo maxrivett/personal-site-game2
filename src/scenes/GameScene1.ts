@@ -11,8 +11,8 @@ export default class GameScene1 extends GameSceneBase {
     create(data: any) {
         super.create(data);
 
-        const npc1 = new NPC(this, 1520, 1520, 'npc', 0, "Welcome to Zone 1!", this.player, 1400, 1600, 1400, 1600);
-        const npc2 = new NPC(this, 1620, 1620, 'npc', 0, "You're still in Zone 1!", this.player, 1600, 1700, 1600, 1700);
+        const npc1 = new NPC(this, 1520, 1520, 'guy', 0, "Welcome to Zone 1!", this.player, 1400, 1600, 1400, 1600);
+        const npc2 = new NPC(this, 1620, 1620, 'cynthia', 0, "You're still in Zone 1!", this.player, 1600, 1700, 1600, 1700);
 
         this.addNPC(npc1);
         this.addNPC(npc2);

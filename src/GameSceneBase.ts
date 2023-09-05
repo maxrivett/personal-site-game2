@@ -6,7 +6,7 @@ import BigSign from './interactive/bigsign';
 import NPC from './NPC'; 
 
 const TILE_WIDTH = 32;
-const PLAYER_SPRITE = "guy"; // change later
+const PLAYER_SPRITE = "max"; // change later
 const MAP_MAX_WIDTH = 800;
 const MAP_MAX_HEIGHT = 600;
 
@@ -68,6 +68,9 @@ export default class GameScene extends Phaser.Scene {
         this.showingBigSign = false;
         let pastScene = this.playerData.getPastScene();
 
+
+        this.player = new Player(this, 0, 0, this.playerData);
+        
         objectLayer.objects.forEach(obj => {
             
             if (obj.type === 'sign') {
@@ -80,6 +83,7 @@ export default class GameScene extends Phaser.Scene {
 
                 // Collide with exit and start the target scene
                 this.debounce = false;
+                console.assert(this.player, 'this.player');
                 this.physics.add.overlap(this.player, exit, () => {
                     if (this.debounce) return;
                     this.debounce = true;
@@ -96,10 +100,12 @@ export default class GameScene extends Phaser.Scene {
                     const spawnx = obj.x, spawny = obj.y;
                     if (!this.playerData.isActive()) { // meaning they just loaded into the game
                         const { x, y } = this.playerData.getPosition();
-                        this.player = new Player(this, x, y, this.playerData); // create a new Player entity at last save
+                        this.player.setPosition(x, y);
+                        // this.player = new Player(this, x, y, this.playerData); // create a new Player entity at last save
                         this.playerData.setActive(true);
                     } else {
-                        this.player = new Player(this, spawnx, spawny, this.playerData); // create a new Player entity at spawn
+                        this.player.setPosition(spawnx, spawny);
+                        //  = new Player(this, spawnx, spawny, this.playerData); // create a new Player entity at spawn
                     }
                 }
             }
@@ -114,7 +120,15 @@ export default class GameScene extends Phaser.Scene {
         // enable physics for the player sprite
         this.physics.add.existing(this.player, false); // make true to show the box
         // for collisions
+
+        console.assert(this.player, 'this.player');
+        // this.physics.add.collider(this.player, worldLayer, (a, b) => {
+        //     console.log('Collider callback triggered');
+        //     console.log('Player: ', a);
+        //     console.log('Tile: ', b);
+        //   });
         this.physics.add.collider(this.player, worldLayer);
+
 
         // Calculate offsets for centering
         let offsetX = map.widthInPixels < MAP_MAX_WIDTH ? (MAP_MAX_WIDTH - map.widthInPixels) / 2 : 0;
@@ -124,7 +138,7 @@ export default class GameScene extends Phaser.Scene {
         this.cameras.main.setBounds(-offsetX, -offsetY, map.widthInPixels, map.heightInPixels); 
         // Set the camera position to the center of the scene
         this.cameras.main.setScroll(offsetX, offsetY);
-        this.cameras.main.setBackgroundColor('#888888');
+        this.cameras.main.setBackgroundColor('#000000');
     }
 
     
@@ -319,7 +333,8 @@ export default class GameScene extends Phaser.Scene {
 
         // Load sprite sheets
         this.load.spritesheet('player', `../assets/sprites/player/${PLAYER_SPRITE}sheet.png`, { frameWidth: 32, frameHeight: 32 });
-        this.load.spritesheet('npc', `../assets/sprites/player/${PLAYER_SPRITE}sheet.png`, { frameWidth: 32, frameHeight: 32 });
+        this.load.spritesheet('guy', `../assets/sprites/player/guysheet.png`, { frameWidth: 32, frameHeight: 32 });
+        this.load.spritesheet('cynthia', `../assets/sprites/player/cynthiasheet.png`, { frameWidth: 32, frameHeight: 32 });
 
         // Scene Watcher
         this.load.script('webfont', 'https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js'); // for font
