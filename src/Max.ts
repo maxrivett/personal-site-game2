@@ -1,13 +1,17 @@
 import Phaser from 'phaser';
 
-const SPEED = 110;
-const TILE_WIDTH = 16;
+const SPEED = 110; // same speed as player
+const TILE_WIDTH = 16; // tile width is really 32px but want him in middle of tile
 
+// All of Max's dialogue, key is the time for him to say it
 const DIALOGUE: { [key: string]: string[] } = {
     Intro: ["Hi there! (Hit the spacebar to advance my text.)", "I'm going to follow you and tell you about myself along the way. Let's get out of this room and start exploring!"],
     HighSchool: ["Here is ... ", "Yes"]
   };
 
+/**
+ * Class representing Max, a NPC that follows the player once interacted with
+ */
 export default class Max extends Phaser.Physics.Arcade.Sprite {
   target: Phaser.GameObjects.Sprite;
   followQueue: Phaser.Math.Vector2[] = [];
@@ -20,7 +24,14 @@ export default class Max extends Phaser.Physics.Arcade.Sprite {
   private currentDialog: string | null = null;
   private spacebarJustPressed: boolean = false;  
 
-
+  /**
+   * Create a Max character.
+   * @param {Phaser.Scene} scene - The scene to which Max belongs.
+   * @param {number} x - The x-coordinate of Max.
+   * @param {number} y - The y-coordinate of Max.
+   * @param {string} texture - The texture to be used for Max.
+   * @param {Phaser.GameObjects.Sprite} target - The target sprite that Max will follow.
+   */
   constructor(scene: Phaser.Scene, x: number, y: number, texture: string, target: Phaser.GameObjects.Sprite) {
     super(scene, x, y, texture);
     this.target = target;
@@ -30,6 +41,9 @@ export default class Max extends Phaser.Physics.Arcade.Sprite {
     this.cursorKeys = this.scene.input.keyboard.createCursorKeys(); 
   }
 
+  /**
+   * Update Max's state. This method is called in the game loop.
+   */
   update() {
     if (!this.targetPosition && this.followQueue.length > 1) {
       this.targetPosition = this.followQueue.shift();
@@ -55,7 +69,6 @@ export default class Max extends Phaser.Physics.Arcade.Sprite {
       }
     }
     if (this.cursorKeys.space?.isDown && !this.spacebarJustPressed) {
-        console.log("should update");
         this.updateSign();
         this.spacebarJustPressed = true;
       } else if (this.cursorKeys.space?.isUp) {
@@ -63,6 +76,11 @@ export default class Max extends Phaser.Physics.Arcade.Sprite {
       }
   }
 
+  /**
+   * Record the player's position to allow Max to follow.
+   * @param {number} x - The x-coordinate of the player.
+   * @param {number} y - The y-coordinate of the player.
+   */
   recordPlayerPosition(x: number, y: number) {
     if (this.isFollowing === false) return;
     let a = true;
@@ -74,6 +92,11 @@ export default class Max extends Phaser.Physics.Arcade.Sprite {
     }
   }
 
+  /**
+   * Move Max to a specific location.
+   * @param {number} targetX - The target x-coordinate.
+   * @param {number} targetY - The target y-coordinate.
+   */
   moveMax(targetX: number, targetY: number) {
     const dx = targetX - this.x;
     const dy = targetY - this.y;
@@ -95,24 +118,35 @@ export default class Max extends Phaser.Physics.Arcade.Sprite {
     this.scene.physics.moveTo(this, targetX, targetY, SPEED);
   }
 
+  /**
+   * Toggle Max's following behavior.
+   * @param {boolean} bool - Whether Max should follow.
+   */
   setFollowing(bool: boolean) {
     if (this.isFollowing != bool) {
-      console.log("hereeee");
-      this.dialogQueue = DIALOGUE.Intro; // Replace with your real dialog
+      this.dialogQueue = DIALOGUE.Intro; 
       this.updateSign();
     }
     this.isFollowing = bool;
   }
 
+  /**
+   * Get Max's following status.
+   * @returns {boolean} Whether Max is following.
+   */
   public getFollowing() {
     return this.isFollowing;
   }
 
+  /**
+   * Create a text sign for dialog.
+   * @param {string} text - The text content for the sign.
+   */
   createSign(text: string) {
     const screenCenterX = this.scene.cameras.main.width / 2;
     const screenCenterY = this.scene.cameras.main.height - (this.scene.cameras.main.height / 8);
     const padding = 20; // Padding around the text
-    const signWidth = 600;  // Increased width
+    const signWidth = 600;  
     
     // Create signRect at the screen center
     this.signRect = this.scene.add.rectangle(screenCenterX, screenCenterY, signWidth, 100, 0xffffff)
@@ -141,7 +175,10 @@ export default class Max extends Phaser.Physics.Arcade.Sprite {
     this.signRect.setSize(signWidth, dynamicHeight);
   }
 
-
+  /**
+   * Set the visibility of the text sign.
+   * @param {boolean} visible - Whether the sign should be visible.
+   */
   setSignVisibility(visible: boolean) {
     if (visible) {
       this.signText.setVisible(true);
@@ -160,6 +197,9 @@ export default class Max extends Phaser.Physics.Arcade.Sprite {
     }
   }
   
+  /**
+   * Update the dialog sign.
+   */
   updateSign() {
     if (this.signRect && this.signText) this.setSignVisibility(false);
     if (this.dialogQueue.length > 0) {

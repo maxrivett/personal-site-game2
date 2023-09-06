@@ -4,6 +4,12 @@ import Max from './Max';
 
 const TILE_WIDTH = 32;
 const VELOCITY_EPSILON = 1e-2; // velocity close to zero
+
+/**
+ * Enum for movement direction
+ * @readonly
+ * @enum {number}
+ */
 const enum MOVEMENT_DIRECTION {
     Up = 1,
     Down,
@@ -14,6 +20,9 @@ const WALK_SPEED = 80; // pixels/second travel, used in moveTo
 const MID_SPEED = 110;
 const RUN_SPEED = 140;
 
+/**
+ * Player class extends Phaser's sprite for Arcade physics
+ */
 export default class Player extends Phaser.Physics.Arcade.Sprite {
     private cursorKeys: Phaser.Types.Input.Keyboard.CursorKeys;
     private target: Phaser.Math.Vector2;
@@ -22,6 +31,13 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     public canMove = true; // false if sidebar etc is open
     protected max?: Max;
 
+    /**
+     * @constructor
+     * @param {Phaser.Scene} scene - The scene that owns this sprite.
+     * @param {number} x - The horizontal coordinate relative to the scene.
+     * @param {number} y - The vertical coordinate relative to the scene.
+     * @param {PlayerData} playerData - The data model for player info.
+     */
     constructor(scene: Phaser.Scene, x: number, y: number, playerData: PlayerData) {
         super(scene, x, y, 'player');
 
@@ -41,17 +57,25 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
 
         // Add an animation complete event listener
         this.on('animationcomplete', this.animComplete, this);
-
-        // this.createMax();
     }
 
+    /**
+     * Snap the coordinates to the grid
+     * @param {number} coord - The coordinate to snap.
+     * @returns {number} The snapped coordinate.
+     */
     private snapToGrid(coord: number): number {
         const halfTile = TILE_WIDTH / 2;
         return Math.round((coord + halfTile) / TILE_WIDTH) * TILE_WIDTH - halfTile;
     }
 
+    /**
+     * Animation complete event handler.
+     * Reverts to standing animation after walking animation completes.
+     * @param {Phaser.Animations.Animation} animation - The completed animation.
+     * @param {Phaser.Animations.AnimationFrame} frame - The last animation frame.
+     */
     private animComplete(animation: Phaser.Animations.Animation, frame: Phaser.Animations.AnimationFrame) {
-        // Add logic to revert to standing animation
         if (animation.key.startsWith('player_walk')) {
             switch (this.direction) {
                 case MOVEMENT_DIRECTION.Up:
@@ -69,8 +93,10 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
             }
         }
     }
-    
 
+    /**
+     * Update method called on every frame
+     */
     update() {
         if (this.max) {
             if (!this.max.getFollowing()) {
@@ -78,8 +104,6 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
                 const dy = Math.abs(this.y - this.max.y);
                 if (dx < 33 && dy < 33) {
                     this.max.setFollowing(true);
-                    // ACCESS THE FUNCTION FROM GameSceneBase.ts
-                    // and setMaxIsFollowing(true)
                     this.playerData.setMaxFollowing(true);
                     
                 }
@@ -174,20 +198,25 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
         } 
 
         const distance = Phaser.Math.Distance.Between(this.x, this.y, this.target.x, this.target.y);
-        if (distance < TILE_WIDTH / 8) { // Adjust this distance as needed
+        if (distance < TILE_WIDTH / 8) { 
             this.setPosition(this.target.x, this.target.y);
             this.body.reset(this.target.x, this.target.y);
         }
     }
 
+    /**
+     * Get the current direction of the player.
+     * @returns {number} The current direction.
+     */
     getDirection(): number {
         return this.direction;
     }
 
-    // public createMax() {
-    //     this.max = new Max(this.scene, this.x, this.y, 'maxTexture', this);
-    //   }
-
+    /**
+     * Assign Max, the follower, to the player.
+     * @param {Max} max - The Max entity.
+     * @param {boolean} following - Is Max following the player?
+     */
     public setMax(max: Max, following: boolean) {
         this.max = max;
         this.max.setFollowing(following);

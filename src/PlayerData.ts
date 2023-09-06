@@ -48,7 +48,6 @@ export default class PlayerData {
         switch (direction) {
             case ("Up") :
                 this.data.direction = 1;
-                console.log("up");
                 break;
             case ("Down") :
                 this.data.direction = 2;

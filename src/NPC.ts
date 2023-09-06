@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import Player from './Player';  // Update the import based on your actual Player class path
+import Player from './Player';  
 
 const TILE_WIDTH = 32;  
 const WALK_SPEED = 80; // Reduced walk speed
@@ -11,6 +11,9 @@ enum NPC_DIRECTION {
   Right = 'Right'
 }
 
+/**
+ * NPC class extends Phaser's Sprite class to represent a Non-Player Character in the game.
+ */
 export default class NPC extends Phaser.Physics.Arcade.Sprite {
 
   private player: Player;
@@ -33,6 +36,19 @@ export default class NPC extends Phaser.Physics.Arcade.Sprite {
   private minY: number;
   private maxY: number;
 
+  /**
+   * @param {Phaser.Scene} scene - The scene this NPC belongs to.
+   * @param {number} x - The x coordinate of the NPC.
+   * @param {number} y - The y coordinate of the NPC.
+   * @param {string} texture - The texture key used for the NPC sprite.
+   * @param {string|number} frame - The frame number or name.
+   * @param {string} text - The text to display above the NPC when the player is in sight.
+   * @param {Player} player - The player object.
+   * @param {number} minX - Minimum x coordinate NPC can move to.
+   * @param {number} maxX - Maximum x coordinate NPC can move to.
+   * @param {number} minY - Minimum y coordinate NPC can move to.
+   * @param {number} maxY - Maximum y coordinate NPC can move to.
+   */
   constructor(scene: Phaser.Scene, x: number, y: number, texture: string, frame: string | number, text: string, player: Player, minX: number, maxX: number, minY: number, maxY: number) {
     super(scene, x, y, texture, frame);
     this.player = player;
@@ -79,6 +95,11 @@ export default class NPC extends Phaser.Physics.Arcade.Sprite {
     }
   }
 
+  /**
+   * Initialize the textbox for the NPC dialog.
+   * 
+   * @param {string} text - The text for the textbox.
+   */
   private initTextBox(text: string) {
     // Create signText first
     this.signText = this.scene.add.text(this.x, this.y, text, {
@@ -108,7 +129,9 @@ export default class NPC extends Phaser.Physics.Arcade.Sprite {
     .setDepth(100);
   }
 
-
+  /**
+   * Change the direction of the NPC. 
+   */
   private changeDirection() {
     if (this.isNonRotational) return;
     if (this.isPlayerInSight) return; // dont let npc move
@@ -141,6 +164,13 @@ export default class NPC extends Phaser.Physics.Arcade.Sprite {
     this.scheduleNextMove();
   }
 
+  /**
+   * @override
+   * Called before each frame is rendered.
+   * 
+   * @param {number} time - The current time. 
+   * @param {number} delta - The delta time in ms since the last frame.
+   */
   public preUpdate(time: number, delta: number) {
     super.preUpdate(time, delta);
 
@@ -191,6 +221,11 @@ export default class NPC extends Phaser.Physics.Arcade.Sprite {
     }
   }
 
+  /**
+   * Check if the player intersects with NPC's line of sight.
+   * 
+   * @return {boolean} True if intersects, else false.
+   */
   private lineOfSightIntersectsPlayer(): boolean {
     let sightDistance = 3 * TILE_WIDTH; // 3 tile widths
     const tolerance = 15; // 15 pixel tolerance to either side of the line
@@ -209,24 +244,32 @@ export default class NPC extends Phaser.Physics.Arcade.Sprite {
     }
   }
   
-
+  /**
+   * Show the textbox above the NPC.
+   */
   private showTextBox() {
     this.signText.setPosition(this.x, this.y - 25).setVisible(true);
     this.signRect.setPosition(this.x, this.y - 25).setVisible(true);
   }
 
+  /**
+   * Hide the textbox.
+   */
   private hideTextBox() {
     this.signText.setVisible(false);
     this.signRect.setVisible(false);
   }
 
+  /**
+   * Schedule the next movement for the NPC.
+   */
   private scheduleNextMove() {
     const randomDelay = Phaser.Math.Between(500, 5000); // Generate a random delay between 500ms to 5000ms
     this.moveEvent = this.scene.time.addEvent({
       delay: randomDelay,
       callback: this.changeDirection,
       callbackScope: this,
-      loop: false // Do not loop because we'll schedule the next one manually
+      loop: false // Don't loop because the next one is scheduled manually
     });
   }
 }
