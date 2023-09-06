@@ -7,9 +7,11 @@ import NPC from './NPC';
 import Max from './Max';
 
 const TILE_WIDTH = 32;
-const PLAYER_SPRITE = "max"; // change later
+const PLAYER_SPRITE = "barry"; // change later
 const MAP_MAX_WIDTH = 800;
 const MAP_MAX_HEIGHT = 600;
+
+const maxScene = "GameScene1";
 
 export default class GameScene extends Phaser.Scene {
     protected player?: Player;
@@ -109,17 +111,17 @@ export default class GameScene extends Phaser.Scene {
                         this.playerData.setActive(true);
                     }
                     this.player.setPosition(xPos, yPos);
-                    const max = new Max(this, xPos, yPos + 32, 'max', this.player);
-                    this.player.setMax(max);
+                    const max = new Max(this, xPos, yPos + 64, 'max', this.player);
+                    this.player.setMax(max, (this.scene.key != maxScene));
                 }
             }
             if (obj.type === 'bigSign') {
                 const myBigSign = new BigSign(this, obj.x, obj.y, obj.width, obj.height, obj.properties[0].value, this.player);
                 this.bigSigns.push(myBigSign);
             }
-            // if (obj.type === 'max') {
-            //     this.max = new Max(this, obj.x, obj.y, 'player', this.player);
-            // }
+            if (obj.type === 'max') {
+                this.player.setMax((new Max(this, obj.x, obj.y, 'player', this.player)), (this.scene.key != maxScene));
+            }
         });
 
         aboveLayer.setDepth(10) // make sure above player

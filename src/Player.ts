@@ -72,6 +72,13 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     
 
     update() {
+        if (!this.max.getFollowing()) {
+            const dx = Math.abs(this.x - this.max.x);
+            const dy = Math.abs(this.y - this.max.y);
+            if (dx < 33 && dy < 33) {
+                this.max.setFollowing(true);
+            }
+        }
         // Snap to grid if velocity is low and not at the target
         if (Math.abs(this.body.velocity.x) <= VELOCITY_EPSILON &&
             Math.abs(this.body.velocity.y) <= VELOCITY_EPSILON) {
@@ -171,7 +178,8 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     //     this.max = new Max(this.scene, this.x, this.y, 'maxTexture', this);
     //   }
 
-    public setMax(max: Max) {
+    public setMax(max: Max, following: boolean) {
         this.max = max;
+        this.max.setFollowing(following);
     }
 }

@@ -3,17 +3,31 @@ import Phaser from 'phaser';
 const SPEED = 110;
 const TILE_WIDTH = 16;
 
+const DIALOGUE: { [key: string]: string[] } = {
+    Intro: ["Hi there! (Hit the spacebar to advance my text.)", "I'm going to follow you and tell you about myself along the way. Let's get out of this room and start exploring!"],
+    HighSchool: ["Here is ... ", "Yes"]
+  };
+
 export default class Max extends Phaser.Physics.Arcade.Sprite {
   target: Phaser.GameObjects.Sprite;
   followQueue: Phaser.Math.Vector2[] = [];
   private targetPosition: Phaser.Math.Vector2 | null = null;
-  private isFollowing = true;
+  private isFollowing = false;
+  private signText: Phaser.GameObjects.Text;
+  private signRect: Phaser.GameObjects.Rectangle;
+  private cursorKeys: Phaser.Types.Input.Keyboard.CursorKeys;
+  private dialogQueue: string[] = [];
+  private currentDialog: string | null = null;
+  private spacebarJustPressed: boolean = false;  
+
 
   constructor(scene: Phaser.Scene, x: number, y: number, texture: string, target: Phaser.GameObjects.Sprite) {
     super(scene, x, y, texture);
     this.target = target;
+    this.scene = scene;
     scene.physics.world.enable(this);
     scene.add.existing(this);
+    this.cursorKeys = this.scene.input.keyboard.createCursorKeys(); 
   }
 
   update() {
@@ -40,6 +54,13 @@ export default class Max extends Phaser.Physics.Arcade.Sprite {
         this.targetPosition = null;
       }
     }
+    if (this.cursorKeys.space?.isDown && !this.spacebarJustPressed) {
+        console.log("should update");
+        this.updateSign();
+        this.spacebarJustPressed = true;
+      } else if (this.cursorKeys.space?.isUp) {
+        this.spacebarJustPressed = false;
+      }
   }
 
   recordPlayerPosition(x: number, y: number) {
@@ -75,6 +96,75 @@ export default class Max extends Phaser.Physics.Arcade.Sprite {
   }
 
   setFollowing(bool: boolean) {
+    if (this.isFollowing != bool) {
+      console.log("hereeee");
+      this.dialogQueue = DIALOGUE.Intro; // Replace with your real dialog
+      this.updateSign();
+    }
     this.isFollowing = bool;
+  }
+
+  public getFollowing() {
+    return this.isFollowing;
+  }
+
+  createSign(text: string) {
+    const screenCenterX = this.scene.cameras.main.width / 2;
+    const screenCenterY = this.scene.cameras.main.height - (this.scene.cameras.main.height / 8);
+    const padding = 20; // Padding around the text
+    const signWidth = 600;  // Increased width
+    
+    // Create signRect at the screen center
+    this.signRect = this.scene.add.rectangle(screenCenterX, screenCenterY, signWidth, 100, 0xffffff)
+        .setStrokeStyle(4, 0x000000)
+        .setDepth(100)
+        .setVisible(true)
+        .setScrollFactor(0);
+    
+    // Create signText at the screen center but align text to the left side
+    this.signText = this.scene.add.text(screenCenterX - signWidth / 2 + padding, screenCenterY, `Max: ${text}`, {
+        fontFamily: 'PokemonPixel',
+        fontSize: '30px',
+        color: '#000000',
+        align: 'left',  // Align text to left
+        wordWrap: { width: signWidth - 2 * padding } // Wrap the text
+    })
+        .setOrigin(0, 0.5)  // Set origin to align left
+        .setDepth(101)
+        .setVisible(true)
+        .setScrollFactor(0);
+
+    // Calculate the dynamic height based on the text height
+    const dynamicHeight = this.signText.height + 2 * padding;
+  
+    // Update the signRect height dynamically
+    this.signRect.setSize(signWidth, dynamicHeight);
+  }
+
+
+  setSignVisibility(visible: boolean) {
+    if (visible) {
+      this.signText.setVisible(true);
+      this.signRect.setVisible(true);
+    } else {
+      this.signText.setVisible(false);
+      this.signRect.setVisible(false);
+  
+      // Destroy text and rect contents
+      this.signText.destroy();
+      this.signRect.destroy();
+  
+      // Nullify the references
+      this.signText = null;
+      this.signRect = null;
+    }
+  }
+  
+  updateSign() {
+    if (this.signRect && this.signText) this.setSignVisibility(false);
+    if (this.dialogQueue.length > 0) {
+      this.currentDialog = this.dialogQueue.shift()!;
+      this.createSign(this.currentDialog);
+    }
   }
 }

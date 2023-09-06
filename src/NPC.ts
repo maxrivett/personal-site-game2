@@ -211,8 +211,8 @@ export default class NPC extends Phaser.Physics.Arcade.Sprite {
   
 
   private showTextBox() {
-    this.signText.setPosition(this.x, this.y - 60).setVisible(true);
-    this.signRect.setPosition(this.x, this.y - 60).setVisible(true);
+    this.signText.setPosition(this.x, this.y - 25).setVisible(true);
+    this.signRect.setPosition(this.x, this.y - 25).setVisible(true);
   }
 
   private hideTextBox() {

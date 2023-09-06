@@ -33,7 +33,7 @@ export default class Sign extends Phaser.GameObjects.Zone {
 	let signCenterX = x + width / 2;
 
 	// Calculate offsets
-	let offsetY = -this.signText.height - 15;  // 10 is padding, adjust as needed
+	let offsetY = -this.signText.height - 10;  // 10 is padding, adjust as needed
 	let offsetX = 0;  // no need for offsetX as we're already setting it to the sign's center
 
 	// Move signText based on calculated offsets
