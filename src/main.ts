@@ -6,6 +6,7 @@ import GameScene2 from './scenes/GameScene2';
 import GameScene3 from './scenes/GameScene3';
 import GameScene4 from './scenes/GameScene4';
 import GameScene5 from './scenes/GameScene5';
+import GameScene6 from './scenes/GameScene6';
 
 const config: Phaser.Types.Core.GameConfig = {
     title: 'Max Rivett',
@@ -23,7 +24,7 @@ const config: Phaser.Types.Core.GameConfig = {
             debug: true
         },
     },
-    scene: [BootScene, GameScene1, GameScene2, GameScene3, GameScene4, GameScene5],
+    scene: [BootScene, GameScene1, GameScene2, GameScene3, GameScene4, GameScene5, GameScene6],
     backgroundColor: '#000000',
     scale: {
         mode: Phaser.Scale.FIT, // make the game scale to fit the container

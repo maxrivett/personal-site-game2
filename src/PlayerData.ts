@@ -48,6 +48,7 @@ export default class PlayerData {
         switch (direction) {
             case ("Up") :
                 this.data.direction = 1;
+                console.log("up");
                 break;
             case ("Down") :
                 this.data.direction = 2;
@@ -75,5 +76,19 @@ export default class PlayerData {
 
     getName(): string {
         return this.data.name;
+    }
+
+    isMaxFollowing(): boolean {
+        return this.data.maxIsFollowing;
+    }
+
+    setMaxFollowing(isFollowing: boolean): void {
+        this.data.maxIsFollowing = isFollowing;
+    }
+    setLastDirection(direction: number) {
+        this.data.lastDirection = direction;
+    }
+    getLastDirection() {
+        return this.data.lastDirection;
     }
 }

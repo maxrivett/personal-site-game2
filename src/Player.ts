@@ -72,11 +72,17 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     
 
     update() {
-        if (!this.max.getFollowing()) {
-            const dx = Math.abs(this.x - this.max.x);
-            const dy = Math.abs(this.y - this.max.y);
-            if (dx < 33 && dy < 33) {
-                this.max.setFollowing(true);
+        if (this.max) {
+            if (!this.max.getFollowing()) {
+                const dx = Math.abs(this.x - this.max.x);
+                const dy = Math.abs(this.y - this.max.y);
+                if (dx < 33 && dy < 33) {
+                    this.max.setFollowing(true);
+                    // ACCESS THE FUNCTION FROM GameSceneBase.ts
+                    // and setMaxIsFollowing(true)
+                    this.playerData.setMaxFollowing(true);
+                    
+                }
             }
         }
         // Snap to grid if velocity is low and not at the target
@@ -129,12 +135,14 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
                 directionLocal = MOVEMENT_DIRECTION.Up;
                 this.anims.play('player_up', true);
                 this.playerData.setActive(true);
+                this.playerData.setLastDirection(MOVEMENT_DIRECTION.Up);
             } else if (this.cursorKeys.down?.isDown && (directionLocal == 0 || directionLocal == MOVEMENT_DIRECTION.Down)) {
                 this.target.y += (modTargetY === 0) ? TILE_WIDTH : (TILE_WIDTH - Math.abs(modTargetY));
                 this.direction = MOVEMENT_DIRECTION.Down;
                 directionLocal = MOVEMENT_DIRECTION.Down;
                 this.anims.play('player_down', true);
                 this.playerData.setActive(true);
+                this.playerData.setLastDirection(MOVEMENT_DIRECTION.Down);
             }
 
             if (this.cursorKeys.left?.isDown && (directionLocal == 0 || directionLocal == MOVEMENT_DIRECTION.Left)) {
@@ -143,12 +151,14 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
                 directionLocal = MOVEMENT_DIRECTION.Left;
                 this.anims.play('player_left', true);
                 this.playerData.setActive(true);
+                this.playerData.setLastDirection(MOVEMENT_DIRECTION.Left);
             } else if (this.cursorKeys.right?.isDown && (directionLocal == 0 || directionLocal == MOVEMENT_DIRECTION.Right)) {
                 this.target.x += (modTargetX === 0) ? TILE_WIDTH : (TILE_WIDTH - Math.abs(modTargetX));
                 this.direction = MOVEMENT_DIRECTION.Right;
                 directionLocal = MOVEMENT_DIRECTION.Right;
                 this.anims.play('player_right', true);
                 this.playerData.setActive(true);
+                this.playerData.setLastDirection(MOVEMENT_DIRECTION.Right);
             }
         }
 

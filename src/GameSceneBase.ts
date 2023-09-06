@@ -11,7 +11,7 @@ const PLAYER_SPRITE = "barry"; // change later
 const MAP_MAX_WIDTH = 800;
 const MAP_MAX_HEIGHT = 600;
 
-const maxScene = "GameScene1";
+const MAXS_SCENE = "GameScene6";
 
 export default class GameScene extends Phaser.Scene {
     protected player?: Player;
@@ -111,8 +111,28 @@ export default class GameScene extends Phaser.Scene {
                         this.playerData.setActive(true);
                     }
                     this.player.setPosition(xPos, yPos);
-                    const max = new Max(this, xPos, yPos + 64, 'max', this.player);
-                    this.player.setMax(max, (this.scene.key != maxScene));
+                    if (this.playerData.isMaxFollowing() === true) {
+                        let xVal = 0;
+                        let yVal = 0;
+                        switch (this.playerData.getLastDirection()) {
+                            case 1: // up
+                                yVal = 32;
+                                break;
+                            case 2: // down
+                                yVal = -32;
+                                break;
+                            case 3: // left
+                                xVal = 32;
+                                break;
+                            case 4: // right
+                                xVal = -32;
+                                break;
+                            default:
+                                break;
+                        }
+                        const max = new Max(this, xPos + xVal, yPos + yVal, 'max', this.player);
+                        this.player.setMax(max, (this.scene.key != MAXS_SCENE));
+                    } 
                 }
             }
             if (obj.type === 'bigSign') {
@@ -120,7 +140,7 @@ export default class GameScene extends Phaser.Scene {
                 this.bigSigns.push(myBigSign);
             }
             if (obj.type === 'max') {
-                this.player.setMax((new Max(this, obj.x, obj.y, 'player', this.player)), (this.scene.key != maxScene));
+                this.player.setMax((new Max(this, obj.x, obj.y, 'max', this.player)), (this.scene.key != MAXS_SCENE));
             }
         });
 
@@ -274,6 +294,7 @@ export default class GameScene extends Phaser.Scene {
         this.debounce = false;
     }
 
+
     preloadResources() {
         // keys can load only once. This is why we do different keys for all maps (not necessary for tileset since the same for all)
         this.load.image("tiles", "../assets/tiles/tileset.png");
@@ -284,6 +305,7 @@ export default class GameScene extends Phaser.Scene {
         this.load.spritesheet('guy', `../assets/sprites/player/guysheet.png`, { frameWidth: 32, frameHeight: 32 });
         this.load.spritesheet('cynthia', `../assets/sprites/player/cynthiasheet.png`, { frameWidth: 32, frameHeight: 32 });
         this.load.spritesheet('max', `../assets/sprites/player/maxsheet.png`, { frameWidth: 32, frameHeight: 32 });
+        this.load.spritesheet('mom', `../assets/sprites/player/momsheet.png`, { frameWidth: 32, frameHeight: 32 });
 
 
         // Scene Watcher

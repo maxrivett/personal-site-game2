@@ -1,7 +1,7 @@
 # TODOs
 
 - [ ] Make wave movement effect
-- [X] Make player movement always perfect (no movement off of middle of tile)
-- [X] Standing NPC 
 - [ ] Fix tile pixels to look good
 - [ ] Complete map
+- [ ] Add NPCs to each scene
+- [ ] Add Max text to different areas
