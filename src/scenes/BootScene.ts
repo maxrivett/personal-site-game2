@@ -34,7 +34,8 @@ export default class BootScene extends Phaser.Scene {
     fontLoaded() {
         // Start the next scene when the font is loaded
         if (this.playerData) {
-            this.scene.start(this.playerData.getCurrentScene(), { playerData: this.playerData });
+            // this.scene.start(this.playerData.getCurrentScene(), { playerData: this.playerData });
+            this.scene.start(this.playerData.getIntroScene(), { playerData: this.playerData });
         } else {
             // If playerData is not yet initialized, wait for a short time and try again
             setTimeout(() => this.fontLoaded(), 50);

@@ -2,10 +2,11 @@ import GameSceneBase from '../GameSceneBase';
 import NPC from '../NPC';
 
 const ZONE = "zone1";
+const SOUNDTRACK = "";
 
 export default class GameScene1 extends GameSceneBase {
     constructor() {
-        super('GameScene1', ZONE);
+        super('GameScene1', ZONE, SOUNDTRACK);
     }
 
     create(data: any) {

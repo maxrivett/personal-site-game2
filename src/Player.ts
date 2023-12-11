@@ -221,4 +221,8 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
         this.max = max;
         this.max.setFollowing(following);
     }
+
+    public getMax() {
+        return this.max;
+    }
 }

@@ -1,14 +1,15 @@
 # TODOs
 
-- [ ] Make wave movement effect
 - [ ] Fix tile pixels to look good
 - [ ] Complete map
 - [ ] Add NPCs to each scene
 - [ ] Add Max text to different areas
+  - [ ] Make it so that he says it upon entering new area
+  - [ ] Remove that areas voce line from array after it is used
+- [X] "A Button" sound effect
+- [ ] Add intro to game
+- [ ] Rework NPC text box
 
-- [ ] Rather than one huge game map with buildings, 
-  - Split into different zones, representing eras of my life
-    - each zone has buildings, but is smaller than current zone
 
 
 Planning

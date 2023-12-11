@@ -7,12 +7,12 @@ import NPC from './NPC';
 import Max from './Max';
 
 const TILE_WIDTH = 32;
-const PLAYER_SPRITE = "barry"; // change later
+// const PLAYER_SPRITE = "barry"; // change later
 const MAP_MAX_WIDTH = 800;
 const MAP_MAX_HEIGHT = 600;
 
-const MAXS_SCENE = "GameScene6";
-const SNOWY_SCENE = "GameScene1";
+const MAXS_SCENE = "ChildhoodRoomScene";
+const SNOWY_SCENE = "ChildhoodScene";
 
 /**
  * Class representing a game scene.
@@ -23,10 +23,14 @@ export default class GameScene extends Phaser.Scene {
     protected npcs: NPC[] = [];
     protected playerData!: PlayerData;
     zone: string;
+    soundtrack: string;
+    music: Phaser.Sound.BaseSound;
+    soundEffect: Phaser.Sound.BaseSound;
     public signs: Sign[] = [];
     public bigSigns: BigSign[] = [];
     public showingSign: boolean = false;
     public showingBigSign: boolean = false;
+    public maxIsFollowing: boolean = false;
     private isFading: boolean = false;
     private debounce: boolean = false;
     playerPositionQueue: Phaser.Math.Vector2[] = [];
@@ -37,9 +41,10 @@ export default class GameScene extends Phaser.Scene {
      * @param {string} sceneKey - The unique key used to identify the scene.
      * @param {string} zone - The zone or area within the scene.
      */
-    constructor(sceneKey: string, zone: string) {
+    constructor(sceneKey: string, zone: string, soundtrack: string) {
         super({ key: sceneKey });
         this.zone = zone;
+        this.soundtrack = soundtrack;
     }
 
     /**
@@ -89,11 +94,12 @@ export default class GameScene extends Phaser.Scene {
         const worldLayer = map.createLayer("World", tileset, 0, 0);
         const aboveLayer = map.createLayer("Above Player", tileset, 0, 0);
         aboveLayer.setDepth(10) // make sure above player
+        worldLayer.setDepth(9) // make sure above player
 
-        if (this.scene.key === "GameScene1") {
+        // if (this.scene.key === "GameScene1") {
             const topLayer = map.createLayer("Top Layer", tileset, 0, 0);
             topLayer.setDepth(11); // make sure above other layers
-        }
+        // }
 
         // for collisions
         worldLayer.setCollisionBetween(1, 21000, true); // adding collisions for all tiles in the world layer   
@@ -122,6 +128,10 @@ export default class GameScene extends Phaser.Scene {
                     if (this.debounce) return;
                     this.debounce = true;
                     if (!this.isFading) {
+                        // stop soundtrack
+                        this.stopSoundtrack();
+                        // play scene switching audio 
+                        this.playSoundEffect("doorenter");
                         this.isFading = true;
                         this.transitionScene((obj as any).properties.find((prop: { name: string; }) => prop.name === "targetScene").value);
                     }
@@ -158,7 +168,7 @@ export default class GameScene extends Phaser.Scene {
                             default:
                                 break;
                         }
-                        const max = new Max(this, xPos + xVal, yPos + yVal, 'max', this.player);
+                        const max = new Max(this, this, xPos + xVal, yPos + yVal, 'max', this.player);
                         this.player.setMax(max, (this.scene.key != MAXS_SCENE));
                     } 
                 }
@@ -168,7 +178,9 @@ export default class GameScene extends Phaser.Scene {
                 this.bigSigns.push(myBigSign);
             }
             if (obj.type === 'max') {
-                this.player.setMax((new Max(this, obj.x, obj.y, 'max', this.player)), (this.scene.key != MAXS_SCENE));
+                if (this.maxIsFollowing == false) {
+                    this.player.setMax((new Max(this, this, obj.x, obj.y, 'max', this.player)), (this.scene.key != MAXS_SCENE));
+                }
             }
         });
 
@@ -191,6 +203,9 @@ export default class GameScene extends Phaser.Scene {
         if (this.scene.key === SNOWY_SCENE) {
             this.snow();
         }
+        this.stopSoundtrack();
+
+        this.playSoundtrack();
     }
 
     /**
@@ -310,6 +325,11 @@ export default class GameScene extends Phaser.Scene {
             this.clearNPCs();
             // Start the new scene and pass along the player data
             this.scene.start(targetScene, { playerData: this.playerData });
+            if (this.playerData.isMaxFollowing() === true) {
+                const target = this.scene.manager.getScene(targetScene)
+                // this.player.getMax().sayDialogue(target);
+                // setTimeout(() => this.player.getMax().sayDialogue(target), 2000);                
+            }
         }
         // Reset the fading flag
         this.isFading = false;
@@ -331,6 +351,37 @@ export default class GameScene extends Phaser.Scene {
         this.emitter.setScrollFactor(0, 0)
     }
 
+    playSoundtrack() {
+        if (this.soundtrack === "") { // no music for the scene
+            return;
+        }
+        this.music = this.sound.add(this.soundtrack, { volume: 0 }); // start with volume at 0
+        this.music.play();
+    
+        // Fade in the volume over fadeInDuration seconds
+        const fadeInDuration = 5;
+        this.tweens.add({
+            targets: this.music,
+            volume: {from: 0, to: 1}, // target volume
+            duration: fadeInDuration*1000, // 1000 because in ms
+            ease: 'Linear'
+        });
+    }
+
+    public playSoundEffect(soundEffect: string) {
+        this.soundEffect = this.sound.add(soundEffect);
+        this.soundEffect.play();
+    }
+    
+    
+
+    stopSoundtrack() {
+        if (this.music) {
+            this.music.stop();
+        }
+    }
+    
+
 
     /**
      * Preloads the necessary resources for the scene.
@@ -340,15 +391,32 @@ export default class GameScene extends Phaser.Scene {
         this.load.image("tiles", "../assets/tiles/tileset.png");
         this.load.tilemapTiledJSON(`map_${this.zone}`, `../assets/tiles/${this.zone}/tilemap.json`);
         // Load sprite sheets
+        let PLAYER_SPRITE = this.playerData.getPlayerGender() ? "barry" : "cynthia";
         this.load.spritesheet(`player`, `../assets/sprites/player/${PLAYER_SPRITE}sheet.png`, { frameWidth: 32, frameHeight: 32 });
         this.load.spritesheet('guy', `../assets/sprites/player/guysheet.png`, { frameWidth: 32, frameHeight: 32 });
         this.load.spritesheet('cynthia', `../assets/sprites/player/cynthiasheet.png`, { frameWidth: 32, frameHeight: 32 });
         this.load.spritesheet('max', `../assets/sprites/player/maxsheet.png`, { frameWidth: 32, frameHeight: 32 });
         this.load.spritesheet('mom', `../assets/sprites/player/momsheet.png`, { frameWidth: 32, frameHeight: 32 });
+        this.load.spritesheet('border', `../assets/sprites/player/bordersheet.png`, { frameWidth: 32, frameHeight: 32 });
+        this.load.spritesheet('fat', `../assets/sprites/player/fatsheet.png`, { frameWidth: 32, frameHeight: 32 });
+        this.load.spritesheet('grunt', `../assets/sprites/player/gruntsheet.png`, { frameWidth: 32, frameHeight: 32 });
+
         // Scene Watcher
         this.load.script('webfont', 'https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js'); // for font
         
         this.load.image('snowflake', '../assets/sprites/environment/snowflake.png');
+
+        // load music (load ogg too so firefox works)
+        this.load.audio('twinleaf', ['../assets/audio/twinleaf.mp3', '../assets/audio/twinleaf.ogg']); // childhood
+        this.load.audio('jubilife', ['../assets/audio/jubilife.mp3', '../assets/audio/jubilife.ogg']); // high school
+        this.load.audio('sunyshore', ['../assets/audio/sunyshore.mp3', '../assets/audio/sunyshore.ogg']); // university
+        this.load.audio('hearthome', ['../assets/audio/hearthome.mp3', '../assets/audio/hearthome.ogg']); // work
+        // other sound effects
+        this.load.audio('doorenter', ['../assets/audio/doorenter.mp3', '../assets/audio/doorenter.ogg']); // work
+        this.load.audio('button', ['../assets/audio/button.mp3', '../assets/audio/button.ogg']); // work
+
     }
 }
+
+export { GameScene };
 

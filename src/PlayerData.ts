@@ -6,12 +6,45 @@ export default class PlayerData {
         this.data = playerData;
     }
 
+    getPlayerGender() {
+        return this.data.gender;
+    }
+
+    setPlayerGender(gender: boolean) {
+        // true for boy, false for girl
+        this.data.gender = gender;
+    }
+
+    getPlayerName() {
+        return this.data.name;
+    }
+
+    setPlayerName(name: string) {
+        this.data.name = name;
+    }
+
     getCurrentScene(): string {
         return this.data.currentScene;
     }
 
     setCurrentScene(scene: string): void {
         this.data.currentScene = scene;
+    }
+
+    getIntroScene(): string {
+        return this.data.intro;
+    }
+
+    setIntroScene(scene: string): void {
+        this.data.intro = scene;
+    }
+
+    getCreditsScene(): string {
+        return this.data.credits;
+    }
+
+    setCreditsScene(scene: string): void {
+        this.data.credits = scene;
     }
 
     getPastScene(): string {

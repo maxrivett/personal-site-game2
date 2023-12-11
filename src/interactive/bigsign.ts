@@ -18,6 +18,7 @@ export default class BigSign extends Phaser.GameObjects.Zone {
   
 	const screenCenterX = scene.cameras.main.width / 2;
 	const screenCenterY = scene.cameras.main.height / 2;
+	const rectWidth = 600;
 	const padding = 20; // Padding around the text
 	
 	// Create signText at the screen center
@@ -26,10 +27,10 @@ export default class BigSign extends Phaser.GameObjects.Zone {
 	  fontSize: '40px',
 	  color: '#000000',
 	  align: 'center',
-	  wordWrap: { width: 360 }  // 360 = 400 (rect width) - 2*20 (padding)
+	  wordWrap: { width: rectWidth - 2*padding } 
 	})
 	  .setOrigin(0.5, 0.5)
-	  .setDepth(101)
+	  .setDepth(111)
 	  .setVisible(false)
 	  .setScrollFactor(0);
   
@@ -37,9 +38,9 @@ export default class BigSign extends Phaser.GameObjects.Zone {
 	const dynamicHeight = this.signText.height + 2 * padding;
   
 	/// Create signRect at the screen center
-	this.signRect = scene.add.rectangle(screenCenterX, screenCenterY, 400, dynamicHeight, 0xffffff)
+	this.signRect = scene.add.rectangle(screenCenterX, screenCenterY, rectWidth, dynamicHeight, 0xffffff)
 	  .setStrokeStyle(4, 0x000000)
-	  .setDepth(100)
+	  .setDepth(110)
 	  .setVisible(false)
 	  .setScrollFactor(0);
   }
