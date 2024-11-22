@@ -4,6 +4,7 @@ maxrivett.com currently has a game, but I would like to include another. That is
 <br>
 This repo looks barren in terms of commits, and that is due to me pulling it out of the old repo I had it in (`personal-game-site`).
 <br>
+
 ### You can now find this game at games.maxrivett.com/newgame !
 
 ## How to use
